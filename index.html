@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Gestão Inventário Materiais</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<link rel="stylesheet"href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
+
+<link rel="stylesheet"href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css">
+
+<script src="https://cdn.datatables.net/1.13./2.5.0/js/dataTables.responsive.min.js"></script>
+
+<script src="https://cdn.datatables.net/buttonsaTables.buttons.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+<style>
+
+body{
+    background:#f5f6fa;
+}
+
+.card{
+    border:none;
+    border-radius:15px;
+    box-shadow:0 2px 10px rgba(0,0,0,.08);
+}
+
+.titulo{
+    font-size:32px;
+    font-weight:700;
+    color:#003366;
+}
+
+#loadingArea{
+    display:none;
+}
+
+.spinner-border{
+    width:3rem;
+    height:3rem;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container-fluid mt-4">
+
+<div class="card p-4">
+
+<h2 class="titulo">
+Gestão Inventário Materiais
+</h2>
+
+<hr>
+
+<div class="row mb-4">
+
+<div class="col-lg-4">
+
+<input
+type="text"
+id="matriculaGestor"
+class="form-control form-control-lg"
+placeholder="Digite sua matrícula">
+
+</div>
+
+<div class="col-lg-3">
+
+<button
+id="btnCarregar"
+class="btn btn-success btn-lg w-100">
+
+Carregar Inventário
+
+</button>
+
+</div>
+
+</div>
+
+<div id="loadingArea">
+
+<div class="alert alert-info">
+
+<div class="d-flex align-items-center">
+
+<div
+class="spinner-border text-primary me-3"
+role="status">
+</div>
+
+<div>
+
+<strong>Consultando inventário...</strong>
+
+<br>
+
+Aguarde. Carregando dados.
+
+</div>
+
+</div>
+
+<div class="progress mt-3">
+
+<div
+class="progress-bar progress-bar-striped progress-bar-animated"
+style="width:100%">
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="table-responsive">
+
+<table
+id="tabelaInventario"
+class="table table-striped table-hover nowrap"
+style="width:100%">
+
+<thead>
+
+<tr>
+
+<th>Matrícula</th>
+<th>Nome</th>
+<th>Conector Int.</th>
+<th>Conector Ext.</th>
+<th>Fibra 100</th>
+<th>Fibra 220</th>
+<th>Fibra 300</th>
+<th>Fibra 500</th>
+<th>HGU 5</th>
+<th>HGU 6</th>
+<th>Decoder ETH</th>
+<th>Decoder WIFI</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const FLUXO_URL =
+"https://default9744600e3e04492ebaa125ec245c6f.10.environment.api.powerplatform.com:443/powerautomate/automations/direct/workflows/e5e23f88d6874e5ba16ccb5f84448b2d/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=mSr2kw8OfyD_AGHgy5hOopyjEcJZfbZQZLLwiRqzrug";
+
+let baseInventario = [];
+let equipesGestor = [];
+
+async function carregarDados(){
+
+    const matriculaGestor =
+        document
+        .getElementById("matriculaGestor")
+        .value
+        .trim()
+        .toUpperCase();
+
+    if(!matriculaGestor){
+
+        alert("Digite sua matrícula.");
+        return;
+
+    }
+
+    $("#loadingArea").show();
+
+    $("#btnCarregar")
+    .prop("disabled", true)
+    .text("Consultando...");
+
+    try{
+
+        const responseEquipes =
+            await fetch("equipes.json");
+
+        const jsonEquipes =
+            await responseEquipes.json();
+
+        equipesGestor =
+            jsonEquipes[matriculaGestor];
+
+        if(!equipesGestor){
+
+            alert("Supervisor não encontrado.");
+
+            $("#loadingArea").hide();
+
+            $("#btnCarregar")
+            .prop("disabled", false)
+            .text("Carregar Inventário");
+
+            return;
+        }
+
+        if(baseInventario.length === 0){
+
+            const response =
+                await fetch(
+                    FLUXO_URL,
+                    {
+                        method:"POST",
+                        headers:{
+                            "Content-Type":"application/json"
+                        },
+                        body: JSON.stringify({})
+                    }
+                );
+
+            const retorno =
+                await response.json();
+
+            baseInventario =
+                retorno.body;
+
+        }
+                const dadosFiltrados =
+            baseInventario.filter(item =>
+                equipesGestor.includes(
+                    item.matricula
+                )
+            );
+
+        if($.fn.DataTable.isDataTable('#tabelaInventario')){
+
+            $('#tabelaInventario')
+            .DataTable()
+            .destroy();
+
+        }
+
+        $('#tabelaInventario tbody').empty();
+
+        dadosFiltrados.forEach(item => {
+
+            $('#tabelaInventario tbody').append(`
+
+                <tr>
+
+                <td>${item.matricula || ''}</td>
+                <td>${item.nome || ''}</td>
+                <td>${item.conectorInterno || 0}</td>
+                <td>${item.conectorExterno || 0}</td>
+                <td>${item.fibra100 || 0}</td>
+                <td>${item.fibra220 || 0}</td>
+                <td>${item.fibra300 || 0}</td>
+                <td>${item.fibra500 || 0}</td>
+                <td>${item.hgu5 || 0}</td>
+                <td>${item.hgu6 || 0}</td>
+                <td>${item.decoderEth || 0}</td>
+                <td>${item.decoderWifi || 0}</td>
+
+                </tr>
+
+            `);
+
+        });
+
+        $('#tabelaInventario').DataTable({
+
+            responsive:true,
+            pageLength:25,
+
+            language:{
+                url:'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json'
+            }
+
+        });
+
+    }
+    catch(erro){
+
+        console.error(erro);
+
+        alert(
+            "Erro ao carregar inventário.\n\n" +
+            erro.message
+        );
+
+    }
+    finally{
+
+        $("#loadingArea").hide();
+
+        $("#btnCarregar")
+        .prop("disabled", false)
+        .text("Carregar Inventário");
+
+    }
+
+}
+
+$("#btnCarregar").click(
+    carregarDados
+);
+
+$(document).ready(function(){
+
+    const gestorSalvo =
+        localStorage.getItem(
+            "gestor"
+        );
+
+    if(gestorSalvo){
+
+        $("#matriculaGestor")
+        .val(gestorSalvo);
+
+    }
+
+    $("#matriculaGestor").on(
+        "change",
+        function(){
+
+            localStorage.setItem(
+                "gestor",
+                $(this).val()
+            );
+
+        }
+    );
+
+});
+
+</script>
+
+</body>
+</html>
