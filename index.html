@@ -371,24 +371,68 @@ $(document).ready(function(){
 
 });
 
-$("#btnExportar").click(function(){
+function exportarCSV(){
 
-    let tabela =
-        document.getElementById("tabelaInventario");
+    if(baseInventario.length === 0){
 
-    let wb =
-        XLSX.utils.table_to_book(
-            tabela,
-            {sheet:"Inventario"}
+        alert("Carregue o inventário primeiro.");
+        return;
+
+    }
+
+    const dadosFiltrados =
+        baseInventario.filter(item =>
+            equipesGestor.includes(
+                item.matricula
+            )
         );
 
-    XLSX.writeFile(
-        wb,
-        "Inventario_Materiais.xlsx"
-    );
+    let csv =
+    "Matricula;Nome;Conector Interno;Conector Externo;Fibra 100;Fibra 220;Fibra 300;Fibra 500;HGU 5;HGU 6;Decoder ETH;Decoder WIFI;Base Port\n";
 
-});
+    dadosFiltrados.forEach(item => {
 
+        csv +=
+        `${item.matricula || ''};` +
+        `${item.nome || ''};` +
+        `${item.conectorInterno || 0};` +
+        `${item.conectorExterno || 0};` +
+        `${item.fibra100 || 0};` +
+        `${item.fibra220 || 0};` +
+        `${item.fibra300 || 0};` +
+        `${item.fibra500 || 0};` +
+        `${item.hgu5 || 0};` +
+        `${item.hgu6 || 0};` +
+        `${item.decoderEth || 0};` +
+        `${item.decoderWifi || 0};` +
+        `${item.basePort || 0}\n`;
+
+    });
+
+    const blob =
+        new Blob(
+            ["\ufeff" + csv],
+            {
+                type:"text/csv;charset=utf-8;"
+            }
+        );
+
+    const link =
+        document.createElement("a");
+
+    link.href =
+        URL.createObjectURL(blob);
+
+    link.download =
+        "Inventario_Materiais.csv";
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+}
 </script>
 
 </body>
