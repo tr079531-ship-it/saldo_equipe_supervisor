@@ -381,17 +381,10 @@ function exportarCSV(){
 
     }
 
-    const dadosFiltrados =
-        baseInventario.filter(item =>
-            equipesGestor.includes(
-                item.matricula
-            )
-        );
-
     let csv =
     "Matricula;Nome;Conector Interno;Conector Externo;Fibra 100;Fibra 220;Fibra 300;Fibra 500;HGU 5;HGU 6;Decoder ETH;Decoder WIFI;Base Port\n";
 
-    dadosFiltrados.forEach(item => {
+    baseInventario.forEach(item => {
 
         csv +=
         `${item.matricula || ''};` +
@@ -410,22 +403,26 @@ function exportarCSV(){
 
     });
 
-    const blob =
-        new Blob(
-            ["\ufeff" + csv],
-            {
-                type:"text/csv;charset=utf-8;"
-            }
-        );
+    const blob = new Blob(
+        ["\ufeff" + csv],
+        {
+            type:"text/csv;charset=utf-8;"
+        }
+    );
 
     const link =
-        document.createElement("a");
+    document.createElement("a");
 
     link.href =
-        URL.createObjectURL(blob);
+    URL.createObjectURL(blob);
+
+    const dataAtual =
+    new Date()
+    .toISOString()
+    .slice(0,10);
 
     link.download =
-        "Inventario_Materiais.csv";
+    `Inventario_Completo_${dataAtual}.csv`;
 
     document.body.appendChild(link);
 
