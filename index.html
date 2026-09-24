@@ -300,16 +300,26 @@ async function carregarDados(){
 
         });
 
-        $('#tabelaInventario').DataTable({
+$('#tabelaInventario').DataTable({
 
-            responsive:true,
-            pageLength:25,
+    responsive:true,
+    pageLength:25,
 
-            language:{
-                url:'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json'
-            }
+    dom: 'Bfrtip',
 
-        });
+    buttons: [
+        {
+            extend:'excelHtml5',
+            text:'Exportar Excel',
+            title:'Inventario_Materiais'
+        }
+    ],
+
+    language:{
+        url:'https://cdn.datatables.net/plug-ins/1.13.8/i18n/pt-BR.json'
+    }
+
+});
 
     }
     catch(erro){
@@ -363,6 +373,23 @@ $(document).ready(function(){
 
         }
     );
+
+});
+
+  $("#btnExportar").click(function(){
+
+    if($.fn.DataTable.isDataTable('#tabelaInventario')){
+
+        $('#tabelaInventario')
+        .DataTable()
+        .button('.buttons-excel')
+        .trigger();
+
+    }else{
+
+        alert("Carregue o inventário primeiro.");
+
+    }
 
 });
 
