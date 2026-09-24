@@ -9,7 +9,7 @@
 <title>Gestão Inventário Materiais</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css">
 
@@ -371,20 +371,21 @@ $(document).ready(function(){
 
 });
 
-  $("#btnExportar").click(function(){
+$("#btnExportar").click(function(){
 
-    if($.fn.DataTable.isDataTable('#tabelaInventario')){
+    let tabela =
+        document.getElementById("tabelaInventario");
 
-        $('#tabelaInventario')
-        .DataTable()
-        .button('.buttons-excel')
-        .trigger();
+    let wb =
+        XLSX.utils.table_to_book(
+            tabela,
+            {sheet:"Inventario"}
+        );
 
-    }else{
-
-        alert("Carregue o inventário primeiro.");
-
-    }
+    XLSX.writeFile(
+        wb,
+        "Inventario_Materiais.xlsx"
+    );
 
 });
 
